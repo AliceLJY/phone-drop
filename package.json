@@ -1,8 +1,8 @@
 {
-  "name": "iphone-sensor-bridge-poc",
-  "version": "0.2.0",
+  "name": "phone-drop",
+  "version": "0.3.0",
   "private": true,
-  "description": "Local phone-to-Mac file drop prototype over a browser-accessible HTTP bridge.",
+  "description": "Private phone-to-Mac file drop over LAN or Tailscale: photos, files, and text from any phone browser, with Bearer auth and a launchd installer.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

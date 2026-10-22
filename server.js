@@ -44,7 +44,7 @@ function loadConfig(env = process.env) {
     port: Number(env.PORT || 8765),
     token: inlineToken || (tokenFile ? readTokenFile(tokenFile) : ""),
     tokenFile,
-    inbox: env.INBOX || path.join(os.homedir(), "Desktop", "iphone-sensor-inbox-v2"),
+    inbox: env.INBOX || path.join(os.homedir(), "Desktop", "phone-drop-inbox"),
     maxBody: Number(env.MAX_BODY || 200 * 1024 * 1024),
     trustProxy: parseBoolean(env.TRUST_PROXY, "TRUST_PROXY"),
     rateWindowMs: RATE_WINDOW_MS,
@@ -327,7 +327,7 @@ function page(maxBody) {
 <body>
 <main>
   <h1>Phone File Drop</h1>
-  <p><span class="pill">${APP_VERSION}</span> 把手机里的图片和文件直接送到 Mac mini，不经过 iCloud / 微信 / WPS / 网盘。</p>
+  <p><span class="pill">${APP_VERSION}</span> 把手机里的照片、文件和文字直接送到这台 Mac 的收件箱，不经过云盘或聊天软件。</p>
 
   <section>
     <strong>访问凭证</strong>
@@ -339,7 +339,7 @@ function page(maxBody) {
   </section>
 
   <section>
-    <strong>Browser capability</strong>
+    <strong>浏览器能力</strong>
     <p id="caps" class="muted">checking...</p>
   </section>
 
@@ -347,7 +347,7 @@ function page(maxBody) {
     <strong>上传到 Mac 收件箱</strong>
     <label class="pick">拍照上传<input id="photo" data-auth-required type="file" accept="image/*" capture="environment" disabled></label>
     <label class="pick">选图片/文件<input id="files" data-auth-required type="file" multiple disabled></label>
-    <p class="muted">单次上传上限约 ${Math.round(maxBody / 1024 / 1024)} MB。上传后复制下面这段给 cc-remote。</p>
+    <p class="muted">单次上传上限约 ${Math.round(maxBody / 1024 / 1024)} MB。上传后可以复制下面这段，粘贴给你在这台 Mac 上用的 AI 助手（比如 Claude Code），让它去处理刚收到的文件。</p>
     <textarea id="ccPrompt" readonly>先输入 Token 并连接。</textarea>
     <button id="copyPrompt" data-auth-required disabled>复制收件箱指令</button>
   </section>
@@ -359,7 +359,7 @@ function page(maxBody) {
   </section>
 
   <section>
-    <strong>Result</strong>
+    <strong>结果</strong>
     <div id="log"></div>
   </section>
 </main>
@@ -386,8 +386,8 @@ const authStatus = document.getElementById("authStatus");
 
 function buildPrompt(names) {
   if (!INBOX) return "先输入 Token 并连接。";
-  if (!names || !names.length) return "收件箱：" + INBOX + "\\n给 cc-remote：读取 mini 的这个收件箱中最新上传的文件，帮我处理。";
-  return "收件箱：" + INBOX + "\\n给 cc-remote：读取 mini 收件箱里这次刚上传的文件，帮我处理：\\n  " + names.join("\\n  ");
+  if (!names || !names.length) return "收件箱：" + INBOX + "\\n请读取这个收件箱中最新上传的文件，帮我处理。";
+  return "收件箱：" + INBOX + "\\n请读取这个收件箱里刚上传的这些文件，帮我处理：\\n  " + names.join("\\n  ");
 }
 
 function applyPrompt(names) {
@@ -490,7 +490,7 @@ async function uploadForm(form) {
   }
   applyPrompt(names);
   log("上传成功: " + names.join(", "), "ok");
-  log("下一步：复制下面已更新的 cc-remote 指令（已含本次文件名）。");
+  log("下一步：复制下面已更新的收件箱指令（已含本次文件名）。");
   return data;
 }
 
@@ -504,7 +504,7 @@ document.getElementById("copyPrompt").onclick = async () => {
       prompt.select();
       document.execCommand("copy");
     }
-    log("已复制 cc-remote 指令", "ok");
+    log("已复制收件箱指令", "ok");
   } catch (err) {
     log("复制失败，手动选中那段文字复制即可: " + err.message, "bad");
   }
@@ -537,7 +537,7 @@ document.getElementById("sendText").onclick = async () => {
     const data = await responseData(res);
     applyPrompt(data.saved.map((item) => item.name));
     log("文字已发送: " + data.saved[0].name + " (" + data.saved[0].size + " bytes)", "ok");
-    log("下一步：复制下面已更新的 cc-remote 指令（已含本次文件名）。");
+    log("下一步：复制下面已更新的收件箱指令（已含本次文件名）。");
     el.value = "";
   } catch (err) {
     log("文字发送失败: " + err.message, "bad");

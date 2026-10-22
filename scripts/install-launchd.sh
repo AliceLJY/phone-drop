@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-label="com.alice.iphone-sensor-bridge-poc"
+label="local.phone-drop"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_dir="$(cd -- "$script_dir/.." && pwd -P)"
 home_dir="${HOME:?HOME must be set}"
@@ -10,12 +10,12 @@ launch_agents_dir="$home_dir/Library/LaunchAgents"
 logs_dir="$home_dir/Library/Logs"
 plist_dst="$launch_agents_dir/$label.plist"
 plist_tmp="${plist_dst}.new.$$"
-token_file="${BRIDGE_TOKEN_FILE:-$home_dir/.config/iphone-sensor-bridge-poc/token}"
+token_file="${BRIDGE_TOKEN_FILE:-$home_dir/.config/phone-drop/token}"
 token_dir="$(dirname "$token_file")"
 token_tmp="${token_file}.new.$$"
-inbox="${BRIDGE_INBOX:-$home_dir/Desktop/iphone-sensor-inbox-v2}"
-stdout_log="$logs_dir/iphone-sensor-bridge-poc.log"
-stderr_log="$logs_dir/iphone-sensor-bridge-poc.err.log"
+inbox="${BRIDGE_INBOX:-$home_dir/Desktop/phone-drop-inbox}"
+stdout_log="$logs_dir/phone-drop.log"
+stderr_log="$logs_dir/phone-drop.err.log"
 node_bin="${BRIDGE_NODE_BIN:-$(command -v node || true)}"
 uid="$(id -u)"
 token="${BRIDGE_TOKEN:-}"
@@ -59,6 +59,11 @@ if [[ "$token_file" != /* ]]; then
   echo "BRIDGE_TOKEN_FILE must be an absolute path." >&2
   exit 1
 fi
+if [[ -z "$listen_hosts" ]]; then
+  echo "BRIDGE_LISTEN_HOSTS is required: set it to this Mac's Tailscale address (see 'tailscale ip -4')" >&2
+  echo "or LAN address, or to 0.0.0.0 only if you intend every network interface to reach the service." >&2
+  exit 1
+fi
 if [[ "$listen_hosts" == *$'\n'* || "$listen_hosts" == *$'\r'* ]]; then
   echo "BRIDGE_LISTEN_HOSTS must not contain line breaks." >&2
   exit 1
@@ -100,9 +105,7 @@ cp "$plist_src" "$plist_tmp"
 /usr/bin/plutil -replace EnvironmentVariables.BRIDGE_TOKEN_FILE -string "$token_file" "$plist_tmp"
 /usr/bin/plutil -replace StandardOutPath -string "$stdout_log" "$plist_tmp"
 /usr/bin/plutil -replace StandardErrorPath -string "$stderr_log" "$plist_tmp"
-if [[ -n "$listen_hosts" ]]; then
-  /usr/bin/plutil -replace EnvironmentVariables.HOSTS -string "$listen_hosts" "$plist_tmp"
-fi
+/usr/bin/plutil -replace EnvironmentVariables.HOSTS -string "$listen_hosts" "$plist_tmp"
 chmod 600 "$plist_tmp"
 mv "$plist_tmp" "$plist_dst"
 unset token BRIDGE_TOKEN

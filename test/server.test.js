@@ -28,7 +28,7 @@ const TEST_TOKEN = "test-only-bridge-token-0123456789";
 const quietLogger = { log() {}, error() {} };
 
 function uniqueInbox(label) {
-  return path.join(os.tmpdir(), `iphone-sensor-bridge-poc-${label}-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  return path.join(os.tmpdir(), `phone-drop-${label}-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 }
 
 function testConfig(overrides = {}) {
@@ -146,7 +146,7 @@ test("non-loopback listeners fail closed without BRIDGE_TOKEN", () => {
 });
 
 test("private token files require a real user-owned mode-600 file", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "iphone-sensor-token-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "phone-drop-token-"));
   const tokenFile = path.join(root, "token");
   const symlink = path.join(root, "token-link");
   try {
@@ -425,7 +425,7 @@ test("rate limiter sweeps entries after their window expires", () => {
 
 test("tracked configuration contains no token value", () => {
   const root = path.resolve(__dirname, "..");
-  const plist = fs.readFileSync(path.join(root, "launchd", "com.alice.iphone-sensor-bridge-poc.plist"), "utf8");
+  const plist = fs.readFileSync(path.join(root, "launchd", "local.phone-drop.plist"), "utf8");
   assert.equal(plist.includes("<key>BRIDGE_TOKEN</key>"), false, "tracked plist must not define BRIDGE_TOKEN");
   assert.equal(plist.includes("<key>BRIDGE_TOKEN_FILE</key>"), true, "tracked plist should reference a private token file");
 
