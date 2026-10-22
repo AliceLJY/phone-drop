@@ -2,6 +2,8 @@
 
 A zero-dependency Node.js bridge for sending photos, files, and text from a phone browser to a Mac inbox over a trusted LAN or Tailscale path.
 
+> **Status:** stable · low-frequency maintenance · last verified 2026-10.
+
 ## Security model
 
 - `GET /` is an unauthenticated application shell. It contains neither the server token nor protected inbox data.
